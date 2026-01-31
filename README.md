@@ -82,6 +82,49 @@ pio device monitor
 - **Maximum:** ~1000 uF
 - Values outside this range will show "No cap or out of range"
 
+## How It Works
+
+### The Basic Idea
+
+A capacitor is like a tiny rechargeable bucket for electricity. When you connect it to a power source through a resistor, it doesn't fill up instantly—it fills gradually, like pouring water through a funnel.
+
+The key insight is: **bigger capacitors take longer to fill**. By measuring how long it takes to charge, we can calculate the capacitance.
+
+### The Math
+
+When charging a capacitor through a resistor, there's a simple relationship:
+
+```
+τ = R × C
+```
+
+Where:
+- **τ** (tau) = the "time constant" in seconds
+- **R** = resistance in ohms (Ω)
+- **C** = capacitance in farads (F)
+
+The time constant τ is how long it takes the capacitor to reach about 63.2% of full charge. This isn't an arbitrary number—it comes from the mathematical constant *e* (≈ 2.718), where 63.2% = 1 - 1/e.
+
+### Solving for Capacitance
+
+Since we know the resistor value (10,000Ω) and can measure the charge time, we rearrange the formula:
+
+```
+C = τ / R
+```
+
+The Arduino measures voltage using a 0-1023 scale (10-bit ADC). Full charge (5V) = 1023, so 63.2% = ~647. The code starts a timer, begins charging, and stops when the voltage reaches 647.
+
+**Example calculation:**
+- Measured charge time: 470,000 microseconds (0.47 seconds)
+- Resistor: 10,000Ω
+- Capacitance = 0.47 ÷ 10,000 = 0.000047 F = **47 µF**
+
+### Why Two Resistors?
+
+- **10KΩ resistor (D13):** Used for charging. A larger resistor means slower charging, which gives more accurate timing for small capacitors.
+- **220Ω resistor (D12):** Used for discharging between measurements. A smaller resistor drains the capacitor quickly so it's ready for the next test.
+
 ## License
 
 MIT
