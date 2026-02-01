@@ -47,27 +47,33 @@ OLED: SDA -> A4, SCL -> A5
 
 ## Building & Uploading
 
-This is a PlatformIO project.
+This project supports both PlatformIO and Arduino IDE.
 
-### Using PlatformIO CLI
+### Option 1: PlatformIO (Recommended)
 
+**Using CLI:**
 ```bash
-# Build
-pio run
-
-# Upload to board
-pio run -t upload
-
-# Open serial monitor
-pio device monitor
+pio run              # Build
+pio run -t upload    # Upload to board
+pio device monitor   # Serial monitor
 ```
 
-### Using VS Code
-
+**Using VS Code:**
 1. Install the PlatformIO extension
 2. Open this folder
 3. Click the PlatformIO icon in the sidebar
 4. Select "Upload" under Project Tasks
+
+### Option 2: Arduino IDE
+
+1. Open `arduino/capacitance_meter_button/capacitance_meter_button.ino`
+2. Install required libraries via **Sketch > Include Library > Manage Libraries**:
+   - Adafruit GFX Library
+   - Adafruit SSD1306
+3. Select **Tools > Board > Arduino Nano**
+4. Select **Tools > Processor > ATmega328P** (or "Old Bootloader" for clones)
+5. Select your COM port under **Tools > Port**
+6. Click Upload
 
 ## Usage
 
@@ -124,6 +130,24 @@ The Arduino measures voltage using a 0-1023 scale (10-bit ADC). Full charge (5V)
 
 - **10KΩ resistor (D13):** Used for charging. A larger resistor means slower charging, which gives more accurate timing for small capacitors.
 - **220Ω resistor (D12):** Used for discharging between measurements. A smaller resistor drains the capacitor quickly so it's ready for the next test.
+
+## Project Structure
+
+```
+capacitance_meter_button/
+├── src/                          # PlatformIO source
+│   ├── main.cpp
+│   ├── Display.h                 # Abstract display interface
+│   ├── SSD1306Display.h/.cpp     # OLED implementation
+│   └── CapacitanceMeter.h/.cpp   # Measurement logic
+├── arduino/                      # Arduino IDE version
+│   └── capacitance_meter_button/
+│       ├── capacitance_meter_button.ino
+│       └── *.h/*.cpp             # Same classes
+└── platformio.ini
+```
+
+The code uses an object-oriented design with a `Display` interface, making it easy to add support for different display types (LCD, TFT, etc.) by implementing a new display class.
 
 ## License
 

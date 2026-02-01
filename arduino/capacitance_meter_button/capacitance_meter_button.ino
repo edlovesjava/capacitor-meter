@@ -12,18 +12,21 @@
  *   OLED: SDA -> A4, SCL -> A5
  *
  * Press button to measure. Insert cap, press button, read value.
+ *
+ * Required Libraries (install via Library Manager):
+ *   - Adafruit GFX Library
+ *   - Adafruit SSD1306
  */
 
-#include <Arduino.h>
 #include <Wire.h>
 #include "CapacitanceMeter.h"
 #include "SSD1306Display.h"
 
 // Pin definitions
-constexpr uint8_t CHARGE_PIN    = 13;
-constexpr uint8_t DISCHARGE_PIN = 12;
-constexpr uint8_t ANALOG_PIN    = A0;
-constexpr uint8_t BUTTON_PIN    = 2;
+const uint8_t CHARGE_PIN    = 13;
+const uint8_t DISCHARGE_PIN = 12;
+const uint8_t ANALOG_PIN    = A0;
+const uint8_t BUTTON_PIN    = 2;
 
 // Hardware instances
 CapacitanceMeter meter(CHARGE_PIN, DISCHARGE_PIN, ANALOG_PIN);
