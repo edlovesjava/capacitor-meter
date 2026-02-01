@@ -1,0 +1,100 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:  # Manual trigger
+
+jobs:
+  build-platformio:
+    name: Build PlatformIO
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install PlatformIO
+        run: pip install platformio
+
+      - name: Build PlatformIO project
+        run: pio run
+
+      - name: Upload PlatformIO firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-platformio
+          path: .pio/build/nanoatmega328/firmware.hex
+
+  build-arduino:
+    name: Build Arduino IDE
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Sync Arduino sources
+        run: python sync_arduino.py
+
+      - name: Install Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
+
+      - name: Install Arduino core and libraries
+        run: |
+          arduino-cli core update-index
+          arduino-cli core install arduino:avr
+          arduino-cli lib install "Adafruit GFX Library"
+          arduino-cli lib install "Adafruit SSD1306"
+
+      - name: Build Arduino sketch
+        run: |
+          arduino-cli compile \
+            --fqbn arduino:avr:nano:cpu=atmega328 \
+            arduino/capacitance_meter_button
+
+      - name: Upload Arduino build
+        uses: actions/upload-artifact@v4
+        with:
+          name: firmware-arduino
+          path: arduino/capacitance_meter_button/build/
+
+  verify-sync:
+    name: Verify Arduino Sync
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Check sync status
+        run: |
+          # Run sync
+          python sync_arduino.py
+
+          # Check if any files changed
+          if [[ -n $(git status --porcelain arduino/) ]]; then
+            echo "::error::Arduino folder is out of sync with src/"
+            echo "Run 'python sync_arduino.py' and commit the changes"
+            git diff arduino/
+            exit 1
+          fi
+
+          echo "Arduino folder is in sync"

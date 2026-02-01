@@ -131,11 +131,42 @@ The Arduino measures voltage using a 0-1023 scale (10-bit ADC). Full charge (5V)
 - **10KΩ resistor (D13):** Used for charging. A larger resistor means slower charging, which gives more accurate timing for small capacitors.
 - **220Ω resistor (D12):** Used for discharging between measurements. A smaller resistor drains the capacitor quickly so it's ready for the next test.
 
+## Keeping Arduino IDE in Sync
+
+The PlatformIO `src/` folder is the source of truth. After modifying shared classes, sync to Arduino:
+
+```bash
+python sync_arduino.py    # or: make sync
+```
+
+This copies the shared `.h` and `.cpp` files to `arduino/`. The main entry points (`main.cpp` and `.ino`) are maintained separately since they differ slightly.
+
+### Makefile Targets
+
+```bash
+make help         # Show all targets
+make build        # Build PlatformIO version
+make upload       # Upload to board
+make sync         # Sync to Arduino folder
+make arduino      # Build Arduino version (requires arduino-cli)
+make verify-sync  # Check if arduino/ is in sync
+make all          # Build both versions
+```
+
+### CI/CD
+
+GitHub Actions automatically:
+- Builds both PlatformIO and Arduino versions on push/PR
+- Verifies the Arduino folder stays in sync with `src/`
+- Uploads firmware artifacts
+
+You can also trigger builds manually via the Actions tab.
+
 ## Project Structure
 
 ```
 capacitance_meter_button/
-├── src/                          # PlatformIO source
+├── src/                          # PlatformIO source (source of truth)
 │   ├── main.cpp
 │   ├── Display.h                 # Abstract display interface
 │   ├── SSD1306Display.h/.cpp     # OLED implementation
@@ -143,8 +174,11 @@ capacitance_meter_button/
 ├── arduino/                      # Arduino IDE version
 │   └── capacitance_meter_button/
 │       ├── capacitance_meter_button.ino
-│       └── *.h/*.cpp             # Same classes
-└── platformio.ini
+│       └── *.h/*.cpp             # Synced from src/
+├── .github/workflows/build.yml   # CI/CD pipeline
+├── platformio.ini
+├── sync_arduino.py               # Sync script
+└── Makefile                      # Build shortcuts
 ```
 
 The code uses an object-oriented design with a `Display` interface, making it easy to add support for different display types (LCD, TFT, etc.) by implementing a new display class.
